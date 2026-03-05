@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentence Sprint Plus</title>
+  <style>
+    :root {
+      --bg-1: #0f172a;
+      --bg-2: #1e293b;
+      --panel: rgba(15, 23, 42, 0.78);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+      --accent-2: #a78bfa;
+      --good: #22c55e;
+      --bad: #f87171;
+      --warn: #fbbf24;
+      --shadow: 0 20px 60px rgba(2, 6, 23, 0.45);
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(167, 139, 250, 0.18), transparent 28%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    }
+    .app { max-width: 1080px; margin: 0 auto; padding: 28px 18px 48px; }
+    .hero { display: grid; gap: 10px; margin-bottom: 18px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px; width: fit-content;
+      padding: 8px 12px; border-radius: 999px;
+      background: rgba(96, 165, 250, 0.12);
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      color: #bfdbfe; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    h1 { margin: 0; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.02; letter-spacing: -0.03em; }
+    .subtitle { margin: 0; max-width: 78ch; color: var(--muted); font-size: 1rem; line-height: 1.6; }
+    .panel {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .controls {
+      display: grid; gap: 14px; padding: 18px; grid-template-columns: repeat(12, 1fr);
+      align-items: end; margin-bottom: 16px;
+    }
+    .field { display: grid; gap: 8px; }
+    .field label { font-size: 0.84rem; color: var(--muted); font-weight: 600; }
+    .span-3 { grid-column: span 3; }
+    .span-2 { grid-column: span 2; }
+    .span-12 { grid-column: span 12; }
+
+    .tool-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tool-row button {
+      flex: 1 1 180px;
+    }
+    select, button, textarea { font: inherit; color: var(--text); }
+    select, textarea {
+      width: 100%; border-radius: 16px; border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.82); color: var(--text); outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+    select { min-height: 48px; padding: 0 14px; cursor: pointer; }
+    textarea { resize: vertical; min-height: 128px; padding: 16px; line-height: 1.55; font-size: 1.02rem; }
+    select:focus, textarea:focus { border-color: rgba(96, 165, 250, 0.7); box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12); }
+    button {
+      min-height: 48px; border-radius: 16px; border: 1px solid transparent; padding: 0 16px;
+      font-weight: 700; cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; box-shadow: 0 10px 24px rgba(96, 165, 250, 0.28); }
+    .btn-soft { background: rgba(148, 163, 184, 0.08); color: var(--text); border-color: var(--line); }
+    .btn-warn { background: rgba(251, 191, 36, 0.12); color: #fde68a; border-color: rgba(251, 191, 36, 0.22); }
+    .btn-good { background: rgba(34, 197, 94, 0.12); color: #bbf7d0; border-color: rgba(34, 197, 94, 0.22); }
+    .hud { display: grid; gap: 12px; padding: 18px; margin-bottom: 16px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 999px;
+      background: rgba(148, 163, 184, 0.08); border: 1px solid var(--line); font-size: 0.92rem;
+    }
+    .chip strong { font-size: 0.94rem; color: white; }
+    .chip .dot {
+      width: 8px; height: 8px; border-radius: 999px; background: var(--accent);
+      box-shadow: 0 0 0 6px rgba(96, 165, 250, 0.12);
+    }
+    .chip .dot.saved { background: #34d399; box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.12); }
+    .chip .dot.fallback { background: var(--warn); box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.1); }
+    .progress-wrap { display: grid; gap: 8px; }
+    .progress-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 0.88rem; color: var(--muted); flex-wrap: wrap; }
+    .progress {
+      height: 12px; border-radius: 999px; background: rgba(148, 163, 184, 0.1);
+      overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.08);
+    }
+    .progress > div {
+      height: 100%; width: 0%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.24s ease;
+    }
+    .card { display: grid; gap: 16px; padding: 20px; margin-bottom: 16px; }
+    .meta-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 999px;
+      font-size: 0.82rem; font-weight: 700; background: rgba(96, 165, 250, 0.1);
+      border: 1px solid rgba(96, 165, 250, 0.22); color: #bfdbfe; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .source-link { color: #cbd5e1; text-decoration: none; font-size: 0.9rem; border-bottom: 1px dashed rgba(203, 213, 225, 0.35); }
+    .source-link:hover { color: white; border-bottom-color: rgba(255, 255, 255, 0.5); }
+    .prompt-label { margin: 0; font-size: 0.92rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .prompt-wrap { display: grid; gap: 10px; }
+    .prompt {
+      margin: 0; font-size: clamp(1.35rem, 2.4vw, 2.15rem); line-height: 1.35; letter-spacing: -0.02em;
+      padding: 18px; border-radius: 22px;
+      background: linear-gradient(180deg, rgba(96, 165, 250, 0.08), rgba(15, 23, 42, 0.18)), rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(96, 165, 250, 0.14);
+    }
+    .inline-audio {
+      min-height: 42px; width: fit-content; padding: 0 14px; border-radius: 12px;
+      background: rgba(96, 165, 250, 0.1); color: #dbeafe; border-color: rgba(96, 165, 250, 0.22);
+    }
+    .answer-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .answer-text { flex: 1 1 auto; }
+    .activity-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+    .day-cell {
+      width: 18px; height: 18px; border-radius: 6px; border: 1px solid var(--line);
+      background: rgba(148, 163, 184, 0.08);
+    }
+    .day-cell.active { background: rgba(34, 197, 94, 0.22); border-color: rgba(34, 197, 94, 0.32); }
+    .day-cell.today { box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.16); }
+    .microcopy { color: var(--muted); font-size: 0.92rem; margin-top: -4px; }
+    .assist { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 0.88rem; color: var(--muted); }
+    .accent-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+    .accent-btn {
+      min-height: 40px; min-width: 46px; padding: 0 12px; border-radius: 12px;
+      background: rgba(148, 163, 184, 0.08); color: var(--text); border: 1px solid var(--line);
+      font-weight: 700; font-size: 1rem;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .feedback-panel { display: grid; gap: 14px; padding: 18px; }
+    .feedback {
+      border-radius: 20px; border: 1px solid var(--line); padding: 16px; line-height: 1.6;
+      background: rgba(148, 163, 184, 0.06); color: var(--muted);
+    }
+    .feedback.good { color: #dcfce7; border-color: rgba(34, 197, 94, 0.24); background: rgba(34, 197, 94, 0.08); }
+    .feedback.bad { color: #fee2e2; border-color: rgba(248, 113, 113, 0.24); background: rgba(248, 113, 113, 0.08); }
+    .feedback.warn { color: #fef3c7; border-color: rgba(251, 191, 36, 0.24); background: rgba(251, 191, 36, 0.08); }
+    .answers {
+      display: grid; gap: 10px; border-radius: 20px; border: 1px solid var(--line);
+      padding: 16px; background: rgba(15, 23, 42, 0.48);
+    }
+    .answers h3 { margin: 0; font-size: 0.95rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .answers ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+    .answers li { line-height: 1.5; }
+    .footer-note { margin-top: 14px; color: var(--muted); font-size: 0.9rem; line-height: 1.6; text-align: center; }
+    .hidden { display: none !important; }
+    @media (max-width: 960px) {
+      .span-3, .span-2 { grid-column: span 12; }
+      .controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="hero">
+      <div class="eyebrow">Whole-sentence practice</div>
+      <h1>Sentence Sprint Plus</h1>
+      <p class="subtitle">
+        Now with cookie-saved Tatoeba decks, quick accent keys, reveal-and-retype reinforcement, user-saved paraphrases, mastery-aware review, and simple session goals. Live Tatoeba loads first, with a built-in fallback deck if the network blocks the API.
+      </p>
+    </header>
+
+    <section class="panel controls">
+      <div class="field span-3">
+        <label for="directionSelect">Direction</label>
+        <select id="directionSelect">
+          <option value="spa-eng">Spanish → English</option>
+          <option value="eng-spa">English → Spanish</option>
+        </select>
+      </div>
+      <div class="field span-3">
+        <label for="gradingSelect">Grading</label>
+        <select id="gradingSelect">
+          <option value="lenient">Lenient (ignore case, accents, punctuation)</option>
+          <option value="strict">Strict (exact punctuation and accents matter)</option>
+        </select>
+      </div>
+      <div class="field span-3">
+        <label for="goalSelect">Session goal</label>
+        <select id="goalSelect">
+          <option value="xp-10">10 XP</option>
+          <option value="xp-25">25 XP</option>
+          <option value="xp-100">100 XP</option>
+          <option value="correct-10">10 correct</option>
+          <option value="correct-25">25 correct</option>
+          <option value="streak-10">10 streak</option>
+        </select>
+      </div>
+      <div class="field span-3">
+        <label for="savedDeckSelect">Saved cookie deck</label>
+        <select id="savedDeckSelect">
+          <option value="">No saved deck yet</option>
+        </select>
+      </div>
+      <div class="field span-2">
+        <label>&nbsp;</label>
+        <button id="loadBtn" class="btn-primary">Load fresh pack</button>
+      </div>
+      <div class="field span-2">
+        <label>&nbsp;</label>
+        <button id="restoreBtn" class="btn-soft">Restore deck</button>
+      </div>
+      <div class="field span-2">
+        <label>&nbsp;</label>
+        <button id="resetBtn" class="btn-soft">Reset session</button>
+      </div>
+      <div class="field span-12">
+        <label>Library tools</label>
+        <div class="tool-row">
+          <button id="loadLibraryBtn" class="btn-soft" type="button">Load combined library</button>
+          <button id="mergeDecksBtn" class="btn-soft" type="button">Merge saved decks</button>
+          <button id="exportCsvBtn" class="btn-soft" type="button">Export CSV</button>
+          <button id="importFileBtn" class="btn-soft" type="button">Import file</button>
+        </div>
+        <input id="importFileInput" class="hidden" type="file" accept=".csv,.tsv,.txt,.json,application/json,text/csv,text/tab-separated-values" />
+      </div>
+    </section>
+
+    <section class="panel hud">
+      <div class="chips">
+        <div class="chip"><span class="dot" id="sourceDot"></span><strong id="sourceStatus">Loading...</strong></div>
+        <div class="chip">🔥 Streak <strong id="streakStat">0</strong></div>
+        <div class="chip">✅ Correct <strong id="correctStat">0</strong></div>
+        <div class="chip">🎯 Accuracy <strong id="accuracyStat">0%</strong></div>
+        <div class="chip">⭐ XP <strong id="xpStat">0</strong></div>
+        <div class="chip">🏆 Best <strong id="bestStat">0</strong></div>
+        <div class="chip">📆 Daily <strong id="dailyStat">0</strong></div>
+        <div class="chip">🔊 TTS <strong id="ttsStat">Loading…</strong></div>
+        <div class="chip">🧠 New <strong id="newStat">0</strong></div>
+        <div class="chip">📘 Learning <strong id="learningStat">0</strong></div>
+        <div class="chip">🥇 Mastered <strong id="masteredStat">0</strong></div>
+        <div class="chip">🔁 Review <strong id="reviewStat">0</strong></div>
+        <div class="chip">📚 Library <strong id="libraryStat">0</strong></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="queueMeta">Preparing your first pack…</span>
+          <span id="modeMeta">Spanish → English</span>
+        </div>
+        <div class="progress"><div id="queueBar"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="goalMeta">Goal: 10 XP</span>
+          <span id="speedMeta">Speed: —</span>
+        </div>
+        <div class="progress"><div id="goalBar"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span>Last 14 days</span>
+          <span id="activityMeta">No activity yet</span>
+        </div>
+        <div id="activityStrip" class="activity-strip"></div>
+      </div>
+    </section>
+
+    <section class="panel card">
+      <div class="meta-row">
+        <div class="pill" id="targetPill">Translate to English</div>
+        <a id="sourceLink" class="source-link hidden" href="#" target="_blank" rel="noreferrer noopener">Open source sentence</a>
+      </div>
+      <p class="prompt-label">Prompt</p>
+      <div class="prompt-wrap"><p id="promptText" class="prompt">Loading your first sentence…</p><button id="promptAudioBtn" class="inline-audio" type="button">🔊 Hear Spanish</button></div>
+      <div class="microcopy">Press Enter to check. After a reveal or miss, the score is recorded immediately, but you can keep typing until you can produce a correct answer from memory.</div>
+      <textarea id="answerInput" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" placeholder="Type the full translation here…"></textarea>
+      <div class="accent-bar" id="accentBar">
+        <button class="accent-btn" data-char="á" type="button">á</button>
+        <button class="accent-btn" data-char="é" type="button">é</button>
+        <button class="accent-btn" data-char="í" type="button">í</button>
+        <button class="accent-btn" data-char="ó" type="button">ó</button>
+        <button class="accent-btn" data-char="ú" type="button">ú</button>
+        <button class="accent-btn" data-char="ü" type="button">ü</button>
+        <button class="accent-btn" data-char="ñ" type="button">ñ</button>
+        <button class="accent-btn" data-char="¿" type="button">¿</button>
+        <button class="accent-btn" data-char="¡" type="button">¡</button>
+      </div>
+      <div class="assist">
+        <span id="helperText">Enter checks • Shift+Enter adds a line break</span>
+        <span id="charCount">0 characters</span>
+      </div>
+      <div class="actions">
+        <button id="checkBtn" class="btn-primary">Check</button>
+        <button id="revealBtn" class="btn-soft">Reveal answer</button>
+        <button id="overrideBtn" class="btn-good hidden">Count mine as correct</button>
+        <button id="nextBtn" class="btn-warn hidden">Next sentence</button>
+      </div>
+    </section>
+
+    <section class="panel feedback-panel">
+      <div id="feedbackBox" class="feedback">Loading the first batch…</div>
+      <div id="answersBox" class="answers hidden">
+        <h3>Accepted answers from the current set</h3>
+        <ul id="answersList"></ul>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Live sentence pairs are pulled from Tatoeba when available, and each live card keeps a source link. This build now also keeps a larger combined local library, can merge saved decks, and can export/import deck files (CSV, TSV, or JSON). Tatoeba content is user-contributed, so review and attribute it appropriately before wider use.
+    </p>
+  </div>
+
+  <script>
+    const SETTINGS_KEY = 'sentenceSprintSettings_v4';
+    const PROGRESS_KEY = 'sentenceSprintProgress_v3';
+    const ACTIVITY_KEY = 'sentenceSprintActivity_v1';
+    const LIBRARY_KEY = 'sentenceSprintLibrary_v1';
+    const COOKIE_DECK_KEY = 'sentence_sprint_saved_decks';
+    const COOKIE_CHUNK_SIZE = 3400;
+    const MAX_SAVED_DECKS = 4;
+    const MAX_CARDS_PER_SAVED_DECK = 12;
+    const DAY_MS = 864e5;
+
+    const seedPairs = [
+      { spa: 'Buenos días.', eng: ['Good morning.'] },
+      { spa: '¿Cómo estás?', eng: ['How are you?', 'How are you doing?'] },
+      { spa: 'No entiendo.', eng: ["I don't understand.", 'I do not understand.'] },
+      { spa: 'Necesito ayuda.', eng: ['I need help.'] },
+      { spa: 'Tengo hambre.', eng: ["I'm hungry.", 'I am hungry.'] },
+      { spa: '¿Dónde está el baño?', eng: ['Where is the bathroom?', "Where's the bathroom?"] },
+      { spa: 'Estoy muy cansado hoy.', eng: ["I'm very tired today.", 'I am very tired today.'] },
+      { spa: 'Me gusta aprender idiomas.', eng: ['I like learning languages.', 'I like to learn languages.'] },
+      { spa: 'Llegaré en diez minutos.', eng: ["I'll arrive in ten minutes.", 'I will arrive in ten minutes.'] },
+      { spa: 'Hace mucho calor hoy.', eng: ["It's very hot today.", 'It is very hot today.'] },
+      { spa: 'Ayer vi una película excelente.', eng: ['I watched an excellent movie yesterday.', 'Yesterday I saw an excellent movie.'] },
+      { spa: '¿Puedes repetir eso, por favor?', eng: ['Can you repeat that, please?'] },
+      { spa: 'Estoy buscando una librería.', eng: ["I'm looking for a bookstore.", 'I am looking for a bookstore.'] },
+      { spa: 'Quiero practicar todos los días.', eng: ['I want to practice every day.'] },
+      { spa: 'Esta mesa es demasiado pequeña.', eng: ['This table is too small.'] }
+    ];
+
+    const state = {
+      direction: 'spa-eng',
+      grading: 'lenient',
+      goal: 'xp-10',
+      queue: [],
+      queueSize: 0,
+      current: null,
+      reviewQueue: [],
+      roundsSinceReview: 0,
+      attempted: 0,
+      correct: 0,
+      streak: 0,
+      bestStreak: 0,
+      xp: 0,
+      sourceMode: 'loading',
+      loading: false,
+      roundScored: false,
+      roundCountedCorrect: false,
+      roundReinforced: false,
+      roundRecordedKey: null,
+      roundRecordedOutcome: null,
+      roundStartStreak: 0,
+      roundStartedAt: 0,
+      lastCpm: null,
+      progressMap: {},
+      savedDecks: [],
+      libraryMap: { 'spa-eng': [], 'eng-spa': [] },
+      goalCompleted: false,
+      activityDays: {},
+      ttsVoices: []
+    };
+
+    const els = {
+      directionSelect: document.getElementById('directionSelect'),
+      gradingSelect: document.getElementById('gradingSelect'),
+      goalSelect: document.getElementById('goalSelect'),
+      savedDeckSelect: document.getElementById('savedDeckSelect'),
+      loadBtn: document.getElementById('loadBtn'),
+      restoreBtn: document.getElementById('restoreBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      loadLibraryBtn: document.getElementById('loadLibraryBtn'),
+      mergeDecksBtn: document.getElementById('mergeDecksBtn'),
+      exportCsvBtn: document.getElementById('exportCsvBtn'),
+      importFileBtn: document.getElementById('importFileBtn'),
+      importFileInput: document.getElementById('importFileInput'),
+      sourceDot: document.getElementById('sourceDot'),
+      sourceStatus: document.getElementById('sourceStatus'),
+      streakStat: document.getElementById('streakStat'),
+      correctStat: document.getElementById('correctStat'),
+      accuracyStat: document.getElementById('accuracyStat'),
+      xpStat: document.getElementById('xpStat'),
+      bestStat: document.getElementById('bestStat'),
+      dailyStat: document.getElementById('dailyStat'),
+      ttsStat: document.getElementById('ttsStat'),
+      newStat: document.getElementById('newStat'),
+      learningStat: document.getElementById('learningStat'),
+      masteredStat: document.getElementById('masteredStat'),
+      reviewStat: document.getElementById('reviewStat'),
+      libraryStat: document.getElementById('libraryStat'),
+      queueMeta: document.getElementById('queueMeta'),
+      modeMeta: document.getElementById('modeMeta'),
+      queueBar: document.getElementById('queueBar'),
+      goalMeta: document.getElementById('goalMeta'),
+      goalBar: document.getElementById('goalBar'),
+      speedMeta: document.getElementById('speedMeta'),
+      activityMeta: document.getElementById('activityMeta'),
+      activityStrip: document.getElementById('activityStrip'),
+      targetPill: document.getElementById('targetPill'),
+      sourceLink: document.getElementById('sourceLink'),
+      promptText: document.getElementById('promptText'),
+      promptAudioBtn: document.getElementById('promptAudioBtn'),
+      answerInput: document.getElementById('answerInput'),
+      helperText: document.getElementById('helperText'),
+      charCount: document.getElementById('charCount'),
+      checkBtn: document.getElementById('checkBtn'),
+      revealBtn: document.getElementById('revealBtn'),
+      overrideBtn: document.getElementById('overrideBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      feedbackBox: document.getElementById('feedbackBox'),
+      answersBox: document.getElementById('answersBox'),
+      answersList: document.getElementById('answersList'),
+      accentBar: document.getElementById('accentBar')
+    };
+
+    function shuffle(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function uniqueBy(items, keyFn) {
+      const seen = new Set();
+      const out = [];
+      for (const item of items) {
+        const key = keyFn(item);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(item);
+      }
+      return out;
+    }
+
+    function createEmptyLibraryMap() {
+      return { 'spa-eng': [], 'eng-spa': [] };
+    }
+
+    function cleanAnswerList(values) {
+      const items = Array.isArray(values) ? values : [values];
+      return uniqueBy(items
+        .map(value => String(value || '').replace(/\s+/g, ' ').trim())
+        .filter(Boolean), value => normalize(value, false));
+    }
+
+    function sanitizeCard(card, fallbackLabel = 'Imported deck') {
+      if (!card) return null;
+      const prompt = String(card.prompt || '').replace(/\s+/g, ' ').trim();
+      const answers = cleanAnswerList(card.answers || []);
+      if (!prompt || !answers.length) return null;
+      const sourceLabel = String(card.sourceLabel || fallbackLabel).replace(/\s+/g, ' ').trim() || fallbackLabel;
+      const sourceUrl = String(card.sourceUrl || '').trim() || null;
+      return { prompt, answers, sourceLabel, sourceUrl };
+    }
+
+    function mergeCards(cards, fallbackLabel = 'Imported deck') {
+      const map = new Map();
+      cards.forEach(rawCard => {
+        const card = sanitizeCard(rawCard, fallbackLabel);
+        if (!card) return;
+        const key = normalize(card.prompt, false);
+        const existing = map.get(key);
+        if (!existing) {
+          map.set(key, { ...card, answers: [...card.answers] });
+          return;
+        }
+        existing.answers = uniqueBy([...(existing.answers || []), ...(card.answers || [])], value => normalize(value, false));
+        if (!existing.sourceUrl && card.sourceUrl) existing.sourceUrl = card.sourceUrl;
+        if ((!existing.sourceLabel || existing.sourceLabel === 'Imported deck') && card.sourceLabel) existing.sourceLabel = card.sourceLabel;
+      });
+      return [...map.values()];
+    }
+
+    function getLibraryCards(direction = state.direction) {
+      return Array.isArray(state.libraryMap?.[direction]) ? state.libraryMap[direction] : [];
+    }
+
+    function persistLibrary() {
+      localStorage.setItem(LIBRARY_KEY, JSON.stringify(state.libraryMap));
+    }
+
+    function loadLibrary() {
+      state.libraryMap = createEmptyLibraryMap();
+      try {
+        const raw = localStorage.getItem(LIBRARY_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          state.libraryMap['spa-eng'] = mergeCards(parsed['spa-eng'] || [], 'Saved library');
+          state.libraryMap['eng-spa'] = mergeCards(parsed['eng-spa'] || [], 'Saved library');
+        }
+      } catch {
+        state.libraryMap = createEmptyLibraryMap();
+      }
+    }
+
+    function addCardsToLibrary(cards, direction = state.direction, fallbackLabel = 'Saved library') {
+      if (!Array.isArray(cards) || !cards.length) return 0;
+      const before = getLibraryCards(direction).length;
+      state.libraryMap[direction] = mergeCards([...getLibraryCards(direction), ...cards], fallbackLabel);
+      persistLibrary();
+      const added = Math.max(0, state.libraryMap[direction].length - before);
+      return added;
+    }
+
+    function resetQueueWithCards(cards, sourceText, sourceMode = 'saved', feedbackMessage = '') {
+      const merged = mergeCards(cards, sourceText || 'Imported deck');
+      if (!merged.length) return false;
+      state.queue = scoreAndSortPack(merged);
+      state.queueSize = state.queue.length;
+      state.current = null;
+      state.reviewQueue = [];
+      state.roundsSinceReview = 0;
+      state.sourceMode = sourceMode;
+      updateStatus(sourceText, sourceMode === 'fallback' ? 'fallback' : 'saved');
+      if (feedbackMessage) setFeedback(feedbackMessage, 'good');
+      loadNext(true);
+      return true;
+    }
+
+    function loadCombinedLibraryDeck() {
+      const cards = getLibraryCards(state.direction);
+      if (!cards.length) {
+        setFeedback('Your combined library is empty for this direction. Load or import a few packs first.', 'warn');
+        return false;
+      }
+      return resetQueueWithCards(cards, 'Combined library', 'saved', `Loaded ${cards.length} cards from your combined library.`);
+    }
+
+    function applyLenientExpansions(value) {
+      return value
+        .replace(/\bi['’]?m\b/g, 'i am')
+        .replace(/\byou['’]?re\b/g, 'you are')
+        .replace(/\bhe['’]?s\b/g, 'he is')
+        .replace(/\bshe['’]?s\b/g, 'she is')
+        .replace(/\bit['’]?s\b/g, 'it is')
+        .replace(/\bthat['’]?s\b/g, 'that is')
+        .replace(/\bwhat['’]?s\b/g, 'what is')
+        .replace(/\bwhere['’]?s\b/g, 'where is')
+        .replace(/\bthere['’]?s\b/g, 'there is')
+        .replace(/\bwe['’]?re\b/g, 'we are')
+        .replace(/\bthey['’]?re\b/g, 'they are')
+        .replace(/\bi['’]?ll\b/g, 'i will')
+        .replace(/\bcan['’]?t\b/g, 'cannot')
+        .replace(/\bwon['’]?t\b/g, 'will not')
+        .replace(/\bdon['’]?t\b/g, 'do not')
+        .replace(/\bdoesn['’]?t\b/g, 'does not')
+        .replace(/\bdidn['’]?t\b/g, 'did not')
+        .replace(/\bisn['’]?t\b/g, 'is not')
+        .replace(/\baren['’]?t\b/g, 'are not')
+        .replace(/\bwasn['’]?t\b/g, 'was not')
+        .replace(/\bweren['’]?t\b/g, 'were not')
+        .replace(/\bal\b/g, 'a el')
+        .replace(/\bdel\b/g, 'de el');
+    }
+
+    function normalize(text, strict = false) {
+      let value = (text || '').trim();
+      value = value.replace(/[’‘]/g, "'").replace(/[“”]/g, '"');
+      if (strict) {
+        return value.replace(/\s+/g, ' ').trim();
+      }
+      value = value.toLowerCase();
+      value = applyLenientExpansions(value);
+      value = value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\p{L}\p{N}\s']/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return value;
+    }
+
+    function levenshtein(a, b) {
+      const m = a.length;
+      const n = b.length;
+      if (!m) return n;
+      if (!n) return m;
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i += 1) dp[i][0] = i;
+      for (let j = 0; j <= n; j += 1) dp[0][j] = j;
+      for (let i = 1; i <= m; i += 1) {
+        for (let j = 1; j <= n; j += 1) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+        }
+      }
+      return dp[m][n];
+    }
+
+    function similarity(a, b) {
+      if (!a && !b) return 1;
+      if (!a || !b) return 0;
+      const longest = Math.max(a.length, b.length);
+      if (!longest) return 1;
+      return 1 - (levenshtein(a, b) / longest);
+    }
+
+    function isMinorTypoMatch(a, b) {
+      if (!a || !b) return false;
+      const maxLen = Math.max(a.length, b.length);
+      if (maxLen < 5) return false;
+      const distance = levenshtein(a, b);
+      const allowed = maxLen >= 14 ? 2 : 1;
+      return distance <= allowed && similarity(a, b) >= 0.88;
+    }
+
+    function bestMatch(input, answers, strict = false) {
+      const normalizedInput = normalize(input, strict);
+      const normalizedAnswers = answers.map(answer => ({ raw: answer, normalized: normalize(answer, strict) }));
+      for (const answer of normalizedAnswers) {
+        if (normalizedInput === answer.normalized) {
+          return { accepted: true, near: 1, matched: answer.raw, via: 'exact' };
+        }
+      }
+      if (!strict) {
+        for (const answer of normalizedAnswers) {
+          if (isMinorTypoMatch(normalizedInput, answer.normalized)) {
+            return { accepted: true, near: similarity(normalizedInput, answer.normalized), matched: answer.raw, via: 'typo' };
+          }
+        }
+      }
+      let near = 0;
+      let nearest = normalizedAnswers[0]?.raw || '';
+      for (const answer of normalizedAnswers) {
+        const score = similarity(normalizedInput, answer.normalized);
+        if (score > near) {
+          near = score;
+          nearest = answer.raw;
+        }
+      }
+      return { accepted: false, near, matched: nearest, via: 'miss' };
+    }
+
+    function getModeConfig(direction = state.direction) {
+      if (direction === 'eng-spa') {
+        return { promptLangCode: 'eng', targetLangCode: 'spa', modeLabel: 'English → Spanish', targetLabel: 'Translate to Spanish' };
+      }
+      return { promptLangCode: 'spa', targetLangCode: 'eng', modeLabel: 'Spanish → English', targetLabel: 'Translate to English' };
+    }
+
+    function getGoalConfig(goal = state.goal) {
+      const [kind, rawValue] = goal.split('-');
+      const target = Number(rawValue);
+      if (kind === 'correct') return { label: `${target} correct`, current: state.correct, target };
+      if (kind === 'streak') return { label: `${target} streak`, current: state.streak, target };
+      return { label: `${target} XP`, current: state.xp, target };
+    }
+
+    function getCardKey(card) {
+      return `${state.direction}|${normalize(card.prompt, false)}|${normalize(card.answers[0] || '', false)}`;
+    }
+
+    function getProgressEntry(card) {
+      const key = getCardKey(card);
+      return state.progressMap[key] || {
+        seen: 0,
+        correct: 0,
+        misses: 0,
+        customAnswers: [],
+        lastSeen: 0,
+        intervalDays: 0,
+        nextDue: 0,
+        lastCorrectAt: 0
+      };
+    }
+
+    function isDueEntry(entry) {
+      return Boolean(entry?.seen) && (!entry.nextDue || entry.nextDue <= Date.now());
+    }
+
+    function getScheduledProgress(existing, mode) {
+      const now = Date.now();
+      if (mode === 'incorrect') {
+        return { intervalDays: 0, nextDue: now, lastCorrectAt: existing.lastCorrectAt || 0 };
+      }
+      if (mode === 'reinforced') {
+        const intervalDays = 0.25;
+        return { intervalDays, nextDue: now + intervalDays * DAY_MS, lastCorrectAt: existing.lastCorrectAt || 0 };
+      }
+      if (mode === 'override') {
+        const intervalDays = 0.5;
+        return { intervalDays, nextDue: now + intervalDays * DAY_MS, lastCorrectAt: now };
+      }
+      const previous = Number(existing.intervalDays || 0);
+      const intervalDays = previous ? Math.min(60, Number((previous * 1.8).toFixed(2))) : 1;
+      return { intervalDays, nextDue: now + intervalDays * DAY_MS, lastCorrectAt: now };
+    }
+
+    function getBucketForEntry(entry) {
+      if (!entry || !entry.seen) return 'new';
+      const accuracy = entry.correct / Math.max(1, entry.seen);
+      if (entry.correct >= 4 && accuracy >= 0.8) return 'mastered';
+      return 'learning';
+    }
+
+    function getCardPriority(card) {
+      const entry = getProgressEntry(card);
+      const bucket = getBucketForEntry(entry);
+      const answerLength = normalize(card.answers[0] || '', false).length;
+      const now = Date.now();
+      const dueBias = entry.seen && isDueEntry(entry) ? -12 - Math.min(6, Math.max(0, now - (entry.nextDue || now)) / DAY_MS) : 0;
+      const futurePenalty = entry.seen && entry.nextDue > now ? Math.min(10, (entry.nextDue - now) / DAY_MS) : 0;
+
+      if (bucket === 'new') return dueBias + futurePenalty + answerLength / 220;
+      if (bucket === 'learning') return dueBias + futurePenalty + 10 + (entry.correct - entry.misses) / 10 + answerLength / 250;
+      return dueBias + futurePenalty + 20 + entry.correct / 10 + answerLength / 300;
+    }
+
+    function mergeCustomAnswersIntoCard(card) {
+      const entry = getProgressEntry(card);
+      const mergedAnswers = uniqueBy([...(card.answers || []), ...((entry.customAnswers || []).filter(Boolean))], value => normalize(value, false));
+      return { ...card, answers: mergedAnswers };
+    }
+
+    function scoreAndSortPack(cards) {
+      return [...cards].map(mergeCustomAnswersIntoCard).sort((a, b) => getCardPriority(a) - getCardPriority(b));
+    }
+
+    function fallbackPack(direction = state.direction) {
+      const pack = shuffle(seedPairs).map(pair => {
+        if (direction === 'eng-spa') return { prompt: pair.eng[0], answers: [pair.spa], sourceLabel: 'Embedded starter pack', sourceUrl: null };
+        return { prompt: pair.spa, answers: [...pair.eng], sourceLabel: 'Embedded starter pack', sourceUrl: null };
+      });
+      return scoreAndSortPack(pack);
+    }
+
+    function buildTatoebaUrl(direction = state.direction, limit = 18) {
+      const cfg = getModeConfig(direction);
+      const url = new URL('https://api.tatoeba.org/v1/sentences');
+      url.searchParams.set('lang', cfg.promptLangCode);
+      url.searchParams.set('trans:lang', cfg.targetLangCode);
+      url.searchParams.set('trans:is_direct', 'yes');
+      url.searchParams.set('showtrans', 'matching');
+      url.searchParams.set('sort', 'random');
+      url.searchParams.set('limit', String(limit));
+      url.searchParams.set('is_unapproved', 'no');
+      url.searchParams.set('trans:is_unapproved', 'no');
+      return url.toString();
+    }
+
+    async function fetchTatoebaPack(direction = state.direction, limit = 18) {
+      const url = buildTatoebaUrl(direction, limit);
+      const response = await fetch(url, { method: 'GET', headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(`Tatoeba returned ${response.status}`);
+      const json = await response.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      const mapped = rows.map(row => {
+        const answers = Array.isArray(row?.translations) ? row.translations.map(item => item?.text).filter(Boolean) : [];
+        if (!row?.text || !answers.length) return null;
+        return {
+          prompt: row.text,
+          answers: uniqueBy(answers, value => normalize(value, false)),
+          sourceLabel: `Tatoeba #${row.id ?? '—'}`,
+          sourceUrl: row?.id ? `https://tatoeba.org/en/sentences/show/${row.id}` : null
+        };
+      }).filter(Boolean);
+      const deduped = uniqueBy(mapped, item => `${normalize(item.prompt, false)}__${item.answers[0]}`);
+      if (!deduped.length) throw new Error('No usable sentence pairs were returned.');
+      return scoreAndSortPack(shuffle(deduped));
+    }
+
+    function setCookie(name, value, days = 90) {
+      const expires = new Date(Date.now() + days * DAY_MS).toUTCString();
+      document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+      const prefix = `${name}=`;
+      const cookies = document.cookie ? document.cookie.split('; ') : [];
+      for (const cookie of cookies) {
+        if (cookie.startsWith(prefix)) return cookie.slice(prefix.length);
+      }
+      return '';
+    }
+
+    function deleteCookie(name) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+    }
+
+    function toBase64Utf8(text) {
+      const bytes = new TextEncoder().encode(text);
+      let binary = '';
+      bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+      return btoa(binary);
+    }
+
+    function fromBase64Utf8(text) {
+      const binary = atob(text);
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
+    function writeChunkedCookie(baseName, value) {
+      const encoded = encodeURIComponent(toBase64Utf8(value));
+      const chunks = encoded.match(new RegExp(`.{1,${COOKIE_CHUNK_SIZE}}`, 'g')) || [''];
+      setCookie(`${baseName}_count`, String(chunks.length));
+      chunks.forEach((chunk, index) => setCookie(`${baseName}_${index}`, chunk));
+      let extraIndex = chunks.length;
+      while (getCookie(`${baseName}_${extraIndex}`)) {
+        deleteCookie(`${baseName}_${extraIndex}`);
+        extraIndex += 1;
+      }
+    }
+
+    function readChunkedCookie(baseName) {
+      const count = Number(getCookie(`${baseName}_count`) || 0);
+      if (!count) return '';
+      let joined = '';
+      for (let index = 0; index < count; index += 1) {
+        const part = getCookie(`${baseName}_${index}`);
+        if (!part) return '';
+        joined += part;
+      }
+      try { return fromBase64Utf8(decodeURIComponent(joined)); } catch { return ''; }
+    }
+
+    function serializeDeckForCookie(deck) {
+      return {
+        id: deck.id,
+        direction: deck.direction,
+        loadedAt: deck.loadedAt,
+        label: deck.label,
+        cards: deck.cards.slice(0, MAX_CARDS_PER_SAVED_DECK).map(card => [card.prompt, card.answers.slice(0, 4), card.sourceUrl || '', card.sourceLabel || 'Tatoeba'])
+      };
+    }
+
+    function hydrateDeckFromCookie(rawDeck) {
+      return {
+        id: rawDeck.id,
+        direction: rawDeck.direction,
+        loadedAt: rawDeck.loadedAt,
+        label: rawDeck.label,
+        cards: (rawDeck.cards || []).map(([prompt, answers, sourceUrl, sourceLabel]) => ({
+          prompt,
+          answers,
+          sourceUrl: sourceUrl || null,
+          sourceLabel: sourceLabel || 'Saved Tatoeba deck'
+        }))
+      };
+    }
+
+    function loadSavedDecksFromCookie() {
+      try {
+        const raw = readChunkedCookie(COOKIE_DECK_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map(hydrateDeckFromCookie).filter(deck => deck?.cards?.length);
+      } catch {
+        return [];
+      }
+    }
+
+    function saveSavedDecksToCookie() {
+      const compact = state.savedDecks.slice(0, MAX_SAVED_DECKS).map(serializeDeckForCookie);
+      writeChunkedCookie(COOKIE_DECK_KEY, JSON.stringify(compact));
+    }
+
+    function rememberLoadedDeck(cards) {
+      const deck = {
+        id: `deck-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        direction: state.direction,
+        loadedAt: new Date().toISOString(),
+        label: `${getModeConfig().modeLabel} • ${new Date().toLocaleString()}`,
+        cards: cards.slice(0, MAX_CARDS_PER_SAVED_DECK).map(card => ({
+          prompt: card.prompt,
+          answers: [...card.answers],
+          sourceUrl: card.sourceUrl || null,
+          sourceLabel: card.sourceLabel || 'Tatoeba'
+        }))
+      };
+      state.savedDecks = [deck, ...state.savedDecks.filter(existing => existing.id !== deck.id)].slice(0, MAX_SAVED_DECKS);
+      saveSavedDecksToCookie();
+      updateSavedDeckUI();
+    }
+
+    function updateSavedDeckUI() {
+      const currentDirectionDecks = state.savedDecks.filter(deck => deck.direction === state.direction);
+      els.savedDeckSelect.innerHTML = '';
+      if (!currentDirectionDecks.length) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No saved deck for this mode';
+        els.savedDeckSelect.appendChild(option);
+        els.restoreBtn.disabled = true;
+        return;
+      }
+      currentDirectionDecks.forEach((deck, index) => {
+        const option = document.createElement('option');
+        option.value = deck.id;
+        const stamp = new Date(deck.loadedAt).toLocaleString();
+        option.textContent = `${index + 1}. ${stamp} (${deck.cards.length})`;
+        els.savedDeckSelect.appendChild(option);
+      });
+      els.restoreBtn.disabled = false;
+    }
+
+    function restoreSelectedDeck(auto = false) {
+      const currentDirectionDecks = state.savedDecks.filter(deck => deck.direction === state.direction);
+      const selectedId = els.savedDeckSelect.value || currentDirectionDecks[0]?.id;
+      const deck = state.savedDecks.find(item => item.id === selectedId && item.direction === state.direction);
+      if (!deck) {
+        if (!auto) setFeedback('No saved cookie deck is available for this direction yet.', 'warn');
+        return false;
+      }
+      state.queue = scoreAndSortPack(deck.cards);
+      state.queueSize = state.queue.length;
+      state.current = null;
+      state.reviewQueue = [];
+      state.roundsSinceReview = 0;
+      state.sourceMode = 'saved';
+      updateStatus('Saved cookie deck', 'saved');
+      setFeedback(`Restored ${deck.cards.length} saved cards from cookies.`, 'good');
+      loadNext(true);
+      return true;
+    }
+
+    function mergeSavedDecksIntoLibrary() {
+      const decks = state.savedDecks.filter(deck => deck.direction === state.direction);
+      if (!decks.length) {
+        setFeedback('There are no saved cookie decks to merge for this direction yet.', 'warn');
+        return;
+      }
+      const cards = decks.flatMap(deck => deck.cards || []);
+      const before = getLibraryCards(state.direction).length;
+      addCardsToLibrary(cards, state.direction, 'Merged saved deck');
+      const total = getLibraryCards(state.direction).length;
+      setFeedback(`Merged ${decks.length} saved deck${decks.length === 1 ? '' : 's'} into the combined library (${before} → ${total} cards).`, 'good');
+      updateHud();
+    }
+
+    function escapeCsvCell(value) {
+      const text = String(value ?? '');
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function cardsToCsv(cards, direction = state.direction) {
+      const header = ['direction', 'prompt', 'answers', 'source_label', 'source_url'];
+      const rows = [header.join(',')];
+      mergeCards(cards, 'Exported deck').forEach(card => {
+        rows.push([
+          direction,
+          card.prompt,
+          JSON.stringify(card.answers || []),
+          card.sourceLabel || '',
+          card.sourceUrl || ''
+        ].map(escapeCsvCell).join(','));
+      });
+      return rows.join('\n');
+    }
+
+    function splitDelimitedLine(line, delimiter = ',') {
+      const cells = [];
+      let current = '';
+      let inQuotes = false;
+      for (let index = 0; index < line.length; index += 1) {
+        const char = line[index];
+        const next = line[index + 1];
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            current += '"';
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+        if (!inQuotes && char === delimiter) {
+          cells.push(current);
+          current = '';
+          continue;
+        }
+        current += char;
+      }
+      cells.push(current);
+      return cells;
+    }
+
+    function parseDelimitedRecords(text, delimiter = ',') {
+      const lines = String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim());
+      if (!lines.length) return [];
+      const headers = splitDelimitedLine(lines[0], delimiter).map(cell => cell.trim());
+      return lines.slice(1).map(line => {
+        const values = splitDelimitedLine(line, delimiter);
+        const record = {};
+        headers.forEach((header, index) => {
+          record[header] = values[index] ?? '';
+        });
+        return record;
+      });
+    }
+
+    function parseAnswerField(value) {
+      const text = String(value || '').trim();
+      if (!text) return [];
+      if ((text.startsWith('[') && text.endsWith(']')) || (text.startsWith('{') && text.endsWith('}'))) {
+        try {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) return cleanAnswerList(parsed);
+        } catch {
+          // Fall through to plain splitting.
+        }
+      }
+      return cleanAnswerList(text.split(/\s*\|\s*|\s*;\s*/));
+    }
+
+    function getCaseInsensitive(record, keys) {
+      const entries = Object.entries(record || {});
+      for (const key of keys) {
+        const match = entries.find(([entryKey]) => entryKey.toLowerCase() === key.toLowerCase());
+        if (match) return match[1];
+      }
+      return '';
+    }
+
+    function recordsToDirectionalCards(records, defaultDirection = state.direction, fallbackLabel = 'Imported file') {
+      const results = [];
+      records.forEach(record => {
+        const spa = getCaseInsensitive(record, ['spa', 'spanish', 'es', 'source_spanish']);
+        const eng = getCaseInsensitive(record, ['eng', 'english', 'en', 'source_english']);
+        const sourceLabel = getCaseInsensitive(record, ['source_label', 'sourceLabel', 'label']) || fallbackLabel;
+        const sourceUrl = getCaseInsensitive(record, ['source_url', 'sourceUrl', 'url']) || '';
+
+        if (spa && eng) {
+          const spaAnswers = parseAnswerField(spa);
+          const engAnswers = parseAnswerField(eng);
+          if (spaAnswers.length && engAnswers.length) {
+            results.push({ direction: 'spa-eng', card: { prompt: spaAnswers[0], answers: engAnswers, sourceLabel, sourceUrl } });
+            results.push({ direction: 'eng-spa', card: { prompt: engAnswers[0], answers: spaAnswers, sourceLabel, sourceUrl } });
+          }
+          return;
+        }
+
+        const direction = (getCaseInsensitive(record, ['direction']) || defaultDirection || state.direction).trim();
+        const prompt = getCaseInsensitive(record, ['prompt', 'source', 'question', 'front']);
+        const answers = parseAnswerField(getCaseInsensitive(record, ['answers', 'answer', 'translation', 'target', 'back']));
+        if (!prompt || !answers.length || !['spa-eng', 'eng-spa'].includes(direction)) return;
+        results.push({ direction, card: { prompt, answers, sourceLabel, sourceUrl } });
+      });
+      return results;
+    }
+
+    function parseDeckFileText(text, filename = '') {
+      const lower = String(filename || '').toLowerCase();
+      const trimmed = String(text || '').trim();
+      if (!trimmed) return [];
+
+      if (lower.endsWith('.json') || trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          const records = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.cards) ? parsed.cards : []);
+          if (!records.length) return [];
+          if (records[0] && typeof records[0] === 'object' && ('prompt' in records[0] || 'answers' in records[0] || 'spa' in records[0] || 'eng' in records[0])) {
+            return recordsToDirectionalCards(records, state.direction, 'Imported JSON');
+          }
+        } catch {
+          // Fall back to delimited parsing.
+        }
+      }
+
+      const delimiter = lower.endsWith('.tsv') || (!lower.endsWith('.csv') && trimmed.includes('	') && !trimmed.includes(',')) ? '\t' : ',';
+      const records = parseDelimitedRecords(trimmed, delimiter);
+      return recordsToDirectionalCards(records, state.direction, delimiter === '\t' ? 'Imported TSV' : 'Imported CSV');
+    }
+
+    function triggerDownload(filename, mimeType, content) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    function exportCurrentDirectionCsv() {
+      const libraryCards = getLibraryCards(state.direction);
+      const liveCards = mergeCards([...(state.current ? [state.current] : []), ...state.queue, ...state.reviewQueue], 'Current session');
+      const cards = libraryCards.length ? libraryCards : liveCards;
+      if (!cards.length) {
+        setFeedback('Nothing to export yet. Load, restore, or import a deck first.', 'warn');
+        return;
+      }
+      const csv = cardsToCsv(cards, state.direction);
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      triggerDownload(`sentence-sprint-${state.direction}-${stamp}.csv`, 'text/csv;charset=utf-8', csv);
+      setFeedback(`Exported ${cards.length} cards as CSV.`, 'good');
+    }
+
+    async function importDeckFile(file) {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const entries = parseDeckFileText(text, file.name);
+        if (!entries.length) {
+          setFeedback('No usable cards were found in that file. Use exported CSV format or rows with spa/eng columns.', 'warn');
+          return;
+        }
+
+        const grouped = { 'spa-eng': [], 'eng-spa': [] };
+        entries.forEach(entry => {
+          if (!entry || !grouped[entry.direction]) return;
+          grouped[entry.direction].push(entry.card);
+        });
+
+        let importedCount = 0;
+        Object.entries(grouped).forEach(([direction, cards]) => {
+          importedCount += addCardsToLibrary(cards, direction, `Imported from ${file.name}`);
+        });
+
+        updateHud();
+
+        const currentDirectionCards = mergeCards(grouped[state.direction] || [], `Imported from ${file.name}`);
+        if (currentDirectionCards.length) {
+          resetQueueWithCards(currentDirectionCards, 'Imported file', 'saved', `Imported ${currentDirectionCards.length} current-mode cards from ${file.name}.`);
+        } else {
+          setFeedback(`Imported ${entries.length} cards from ${file.name}. Switch direction to use the other side.`, 'good');
+        }
+
+        if (!importedCount) updateHud();
+      } catch {
+        setFeedback('That file could not be read. Try a UTF-8 CSV, TSV, or JSON file.', 'bad');
+      } finally {
+        els.importFileInput.value = '';
+      }
+    }
+
+    function persistProgress() {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(state.progressMap));
+    }
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(PROGRESS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') state.progressMap = parsed;
+      } catch {
+        state.progressMap = {};
+      }
+    }
+
+    function formatDateKey(date) {
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function getDateKeyFromOffset(offset) {
+      const date = new Date();
+      date.setHours(12, 0, 0, 0);
+      date.setDate(date.getDate() + offset);
+      return formatDateKey(date);
+    }
+
+    function persistActivity() {
+      localStorage.setItem(ACTIVITY_KEY, JSON.stringify(state.activityDays));
+    }
+
+    function loadActivity() {
+      try {
+        const raw = localStorage.getItem(ACTIVITY_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') state.activityDays = parsed;
+      } catch {
+        state.activityDays = {};
+      }
+    }
+
+    function trimOldActivity() {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 120);
+      const cutoffKey = formatDateKey(cutoff);
+      for (const key of Object.keys(state.activityDays)) {
+        if (key < cutoffKey) delete state.activityDays[key];
+      }
+    }
+
+    function recordDailyActivity() {
+      const today = getDateKeyFromOffset(0);
+      state.activityDays[today] = (state.activityDays[today] || 0) + 1;
+      trimOldActivity();
+      persistActivity();
+    }
+
+    function getDailyStreakCount() {
+      let streak = 0;
+      while (state.activityDays[getDateKeyFromOffset(-streak)]) {
+        streak += 1;
+      }
+      return streak;
+    }
+
+    function renderActivityStrip() {
+      els.activityStrip.innerHTML = '';
+      let activeDays = 0;
+      for (let offset = -13; offset <= 0; offset += 1) {
+        const key = getDateKeyFromOffset(offset);
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        if (state.activityDays[key]) {
+          cell.classList.add('active');
+          activeDays += 1;
+        }
+        if (offset === 0) cell.classList.add('today');
+        cell.title = `${key}${state.activityDays[key] ? ` • ${state.activityDays[key]} attempt${state.activityDays[key] === 1 ? '' : 's'}` : ''}`;
+        els.activityStrip.appendChild(cell);
+      }
+      els.activityMeta.textContent = activeDays ? `${activeDays}/14 active days` : 'No activity yet';
+    }
+
+    function recordProgress(card, wasCorrect) {
+      const key = getCardKey(card);
+      const existing = getProgressEntry(card);
+      const schedule = getScheduledProgress(existing, wasCorrect ? 'correct' : 'incorrect');
+      state.progressMap[key] = {
+        ...existing,
+        seen: existing.seen + 1,
+        correct: existing.correct + (wasCorrect ? 1 : 0),
+        misses: existing.misses + (wasCorrect ? 0 : 1),
+        lastSeen: Date.now(),
+        intervalDays: schedule.intervalDays,
+        nextDue: schedule.nextDue,
+        lastCorrectAt: schedule.lastCorrectAt
+      };
+      state.roundRecordedKey = key;
+      state.roundRecordedOutcome = wasCorrect ? 'correct' : 'incorrect';
+      persistProgress();
+    }
+
+    function upgradeRecordedAttemptToCorrect() {
+      const key = state.roundRecordedKey;
+      if (!key || state.roundRecordedOutcome !== 'incorrect') return;
+      const existing = state.progressMap[key];
+      if (!existing) return;
+      const schedule = getScheduledProgress(existing, 'override');
+      state.progressMap[key] = {
+        ...existing,
+        correct: existing.correct + 1,
+        misses: Math.max(0, existing.misses - 1),
+        intervalDays: schedule.intervalDays,
+        nextDue: schedule.nextDue,
+        lastCorrectAt: schedule.lastCorrectAt
+      };
+      state.roundRecordedOutcome = 'correct';
+      persistProgress();
+    }
+
+    function adjustScheduleAfterReinforcement() {
+      const key = state.roundRecordedKey;
+      if (!key) return;
+      const existing = state.progressMap[key];
+      if (!existing) return;
+      const schedule = getScheduledProgress(existing, 'reinforced');
+      state.progressMap[key] = {
+        ...existing,
+        intervalDays: schedule.intervalDays,
+        nextDue: schedule.nextDue,
+        lastCorrectAt: existing.lastCorrectAt || schedule.lastCorrectAt
+      };
+      persistProgress();
+    }
+
+    function saveCustomAcceptedAnswer(card, answer) {
+      const key = getCardKey(card);
+      const existing = getProgressEntry(card);
+      const customAnswers = uniqueBy([...(existing.customAnswers || []), answer.trim()], value => normalize(value, false)).slice(0, 6);
+      state.progressMap[key] = { ...existing, customAnswers };
+      persistProgress();
+      state.current = mergeCustomAnswersIntoCard(state.current);
+    }
+
+    function getCountsForCurrentDeck() {
+      const cards = [...(state.current ? [state.current] : []), ...state.queue];
+      const counts = { new: 0, learning: 0, mastered: 0, due: 0 };
+      cards.forEach(card => {
+        const entry = getProgressEntry(card);
+        counts[getBucketForEntry(entry)] += 1;
+        if (isDueEntry(entry)) counts.due += 1;
+      });
+      return counts;
+    }
+
+    function updateStatus(text, mode) {
+      els.sourceStatus.textContent = text;
+      els.sourceDot.classList.remove('fallback', 'saved');
+      if (mode === 'fallback') els.sourceDot.classList.add('fallback');
+      if (mode === 'saved') els.sourceDot.classList.add('saved');
+    }
+
+    function setFeedback(message, tone = '') {
+      els.feedbackBox.className = 'feedback';
+      if (tone) els.feedbackBox.classList.add(tone);
+      els.feedbackBox.textContent = message;
+    }
+
+    function renderAnswers(answers = []) {
+      if (!answers.length) {
+        els.answersBox.classList.add('hidden');
+        els.answersList.innerHTML = '';
+        return;
+      }
+      const spanishAnswers = Boolean(state.current) && getModeConfig().targetLangCode === 'spa';
+      els.answersList.innerHTML = '';
+      answers.forEach(answer => {
+        const li = document.createElement('li');
+        if (spanishAnswers) {
+          const line = document.createElement('div');
+          line.className = 'answer-line';
+          const span = document.createElement('span');
+          span.className = 'answer-text';
+          span.textContent = answer;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'inline-audio';
+          btn.setAttribute('data-speak', answer);
+          btn.textContent = '🔊';
+          btn.title = 'Hear this Spanish answer';
+          if (!('speechSynthesis' in window)) btn.disabled = true;
+          line.appendChild(span);
+          line.appendChild(btn);
+          li.appendChild(line);
+        } else {
+          li.textContent = answer;
+        }
+        els.answersList.appendChild(li);
+      });
+      els.answersBox.classList.remove('hidden');
+    }
+
+    function voiceScore(voice) {
+      const lang = (voice.lang || '').toLowerCase();
+      const name = (voice.name || '').toLowerCase();
+      if (!lang.includes('es')) return -1;
+      let score = 100;
+      if (name.includes('microsoft')) score += 40;
+      if (name.includes('google')) score += 18;
+      if (name.includes('natural') || name.includes('neural')) score += 18;
+      if (lang === 'es-es' || lang === 'es-mx') score += 8;
+      return score;
+    }
+
+    function refreshVoices() {
+      if (!('speechSynthesis' in window)) {
+        state.ttsVoices = [];
+        updatePromptAudioVisibility();
+        updateHud();
+        return;
+      }
+      state.ttsVoices = (window.speechSynthesis.getVoices() || []).filter(Boolean);
+      updatePromptAudioVisibility();
+      updateHud();
+    }
+
+    function getPreferredSpanishVoice() {
+      if (!state.ttsVoices.length) return null;
+      const candidates = state.ttsVoices
+        .map(voice => ({ voice, score: voiceScore(voice) }))
+        .filter(item => item.score >= 0)
+        .sort((a, b) => b.score - a.score);
+      return candidates[0]?.voice || null;
+    }
+
+    function getTtsLabel() {
+      if (!('speechSynthesis' in window)) return 'Unavailable';
+      const voice = getPreferredSpanishVoice();
+      if (voice && /microsoft/i.test(voice.name || '')) return 'Browser • Microsoft';
+      if (voice) return 'Browser';
+      return 'Browser';
+    }
+
+    function speakSpanish(text) {
+      if (!text) return;
+      if (!('speechSynthesis' in window)) {
+        setFeedback('Browser text to speech is not available here.', 'warn');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voice = getPreferredSpanishVoice();
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang || 'es-ES';
+      } else {
+        utterance.lang = 'es-ES';
+      }
+      utterance.rate = 0.96;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function updatePromptAudioVisibility() {
+      const show = Boolean(state.current) && getModeConfig().promptLangCode === 'spa';
+      els.promptAudioBtn.hidden = !show;
+      els.promptAudioBtn.disabled = show && !('speechSynthesis' in window);
+      els.promptAudioBtn.title = show
+        ? ('speechSynthesis' in window ? 'Hear the Spanish prompt' : 'Browser TTS is unavailable here')
+        : 'No Spanish prompt on this card';
+    }
+
+    function updateHud() {
+      const accuracy = state.attempted ? Math.round((state.correct / state.attempted) * 100) : 0;
+      els.streakStat.textContent = String(state.streak);
+      els.correctStat.textContent = `${state.correct}/${state.attempted}`;
+      els.accuracyStat.textContent = `${accuracy}%`;
+      els.xpStat.textContent = String(state.xp);
+      els.bestStat.textContent = String(state.bestStreak);
+      els.dailyStat.textContent = String(getDailyStreakCount());
+      els.ttsStat.textContent = getTtsLabel();
+
+      const counts = getCountsForCurrentDeck();
+      els.newStat.textContent = String(counts.new);
+      els.learningStat.textContent = String(counts.learning);
+      els.masteredStat.textContent = String(counts.mastered);
+      els.reviewStat.textContent = String(state.reviewQueue.length);
+      els.libraryStat.textContent = String(getLibraryCards(state.direction).length);
+
+      const remaining = state.queue.length + (state.current ? 1 : 0) + state.reviewQueue.length;
+      const total = Math.max(state.queueSize + state.reviewQueue.length, remaining, 1);
+      const used = Math.max(0, total - remaining);
+      const ratio = Math.max(0, Math.min(100, (used / total) * 100));
+      els.queueBar.style.width = `${ratio}%`;
+      els.queueMeta.textContent = `${remaining} cards ready (${state.reviewQueue.length} immediate review • ${counts.due} due by schedule)`;
+
+      const cfg = getModeConfig();
+      els.modeMeta.textContent = cfg.modeLabel;
+      els.targetPill.textContent = cfg.targetLabel;
+
+      const goal = getGoalConfig();
+      const goalRatio = Math.max(0, Math.min(100, (goal.current / Math.max(1, goal.target)) * 100));
+      els.goalMeta.textContent = `Goal: ${goal.label} (${goal.current}/${goal.target})`;
+      els.goalBar.style.width = `${goalRatio}%`;
+
+      els.speedMeta.textContent = state.lastCpm ? `Speed: ${state.lastCpm} chars/min` : 'Speed: —';
+      renderActivityStrip();
+
+      if (!state.goalCompleted && goal.current >= goal.target) {
+        state.goalCompleted = true;
+        setFeedback(`Goal reached: ${goal.label}. Nice session.`, 'good');
+      }
+    }
+
+    function updateCharCount() {
+      const count = els.answerInput.value.length;
+      els.charCount.textContent = `${count} character${count === 1 ? '' : 's'}`;
+    }
+
+    function updateActionLabels() {
+      if (!state.current || !state.roundScored) {
+        els.checkBtn.textContent = 'Check';
+        return;
+      }
+      els.checkBtn.textContent = (state.roundCountedCorrect || state.roundReinforced) ? 'Next' : 'Check again';
+    }
+
+    function setCurrentSourceLink() {
+      if (state.current?.sourceUrl) {
+        els.sourceLink.href = state.current.sourceUrl;
+        els.sourceLink.textContent = `${state.current.sourceLabel || 'Open source sentence'} • source`;
+        els.sourceLink.classList.remove('hidden');
+      } else {
+        els.sourceLink.classList.add('hidden');
+      }
+    }
+
+    function chooseNextCard() {
+      const shouldPullReview = state.reviewQueue.length && (state.roundsSinceReview >= 3 || !state.queue.length);
+      if (shouldPullReview) {
+        state.roundsSinceReview = 0;
+        return state.reviewQueue.shift();
+      }
+      state.roundsSinceReview += 1;
+      return state.queue.shift() || state.reviewQueue.shift() || null;
+    }
+
+    function beginRound(card) {
+      state.current = mergeCustomAnswersIntoCard(card);
+      state.roundScored = false;
+      state.roundCountedCorrect = false;
+      state.roundReinforced = false;
+      state.roundRecordedKey = null;
+      state.roundRecordedOutcome = null;
+      state.roundStartStreak = state.streak;
+      state.roundStartedAt = Date.now();
+
+      els.promptText.textContent = state.current.prompt;
+      els.answerInput.value = '';
+      els.answerInput.disabled = false;
+      updateCharCount();
+      renderAnswers([]);
+      setCurrentSourceLink();
+      updatePromptAudioVisibility();
+      els.overrideBtn.classList.add('hidden');
+      els.nextBtn.classList.add('hidden');
+      els.answerInput.focus();
+      setFeedback('Type the full translation and press Check.', '');
+      updateActionLabels();
+      updateHud();
+
+      if (state.queue.length <= 4) refillQueue(false);
+    }
+
+    function loadNext(fromRefill = false) {
+      const nextCard = chooseNextCard();
+      if (!nextCard) {
+        state.current = null;
+        els.promptText.textContent = 'Loading another pack…';
+        els.answerInput.value = '';
+        els.answerInput.disabled = true;
+        updateCharCount();
+        renderAnswers([]);
+        els.overrideBtn.classList.add('hidden');
+        els.nextBtn.classList.add('hidden');
+        updatePromptAudioVisibility();
+        updateActionLabels();
+        if (!fromRefill) refillQueue(true);
+        updateHud();
+        return;
+      }
+      beginRound(nextCard);
+    }
+
+    function awardXp(base) {
+      state.xp += base + Math.min(20, Math.max(0, state.streak - 1) * 2);
+    }
+
+    function markRoundCorrect(firstTry = true, message = 'Correct. Nice work.') {
+      if (firstTry) {
+        state.correct += 1;
+        state.streak += 1;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        state.roundCountedCorrect = true;
+        recordDailyActivity();
+        recordProgress(state.current, true);
+        awardXp(10);
+      } else {
+        state.roundReinforced = true;
+        state.xp += 2;
+        adjustScheduleAfterReinforcement();
+      }
+
+      const elapsedMinutes = Math.max(0.01, (Date.now() - state.roundStartedAt) / 60000);
+      state.lastCpm = Math.round(els.answerInput.value.trim().length / elapsedMinutes);
+
+      els.answerInput.disabled = true;
+      els.overrideBtn.classList.add('hidden');
+      els.nextBtn.classList.remove('hidden');
+      if (firstTry) renderAnswers([]);
+      else renderAnswers(state.current.answers);
+      setFeedback(message, 'good');
+      state.roundScored = true;
+      updateActionLabels();
+      updateHud();
+      saveSettings();
+    }
+
+    function revealAndScoreAsMiss(message) {
+      if (state.roundScored || !state.current) return;
+      state.roundScored = true;
+      state.roundCountedCorrect = false;
+      state.roundReinforced = false;
+      state.streak = 0;
+      state.attempted += 1;
+      recordDailyActivity();
+      recordProgress(state.current, false);
+      state.reviewQueue.push({ ...state.current, review: true });
+      renderAnswers(state.current.answers);
+      els.answerInput.disabled = false;
+      els.overrideBtn.classList.remove('hidden');
+      els.nextBtn.classList.remove('hidden');
+      setFeedback(`${message} Score recorded. Now type one accepted answer to lock it in.`, 'warn');
+      updateActionLabels();
+      updateHud();
+      saveSettings();
+    }
+
+    async function refillQueue(force = false) {
+      if (state.loading) return;
+      if (!force && state.queue.length > 5) return;
+
+      state.loading = true;
+      if (!state.current) setFeedback('Loading a fresh sentence pack…', '');
+      updateStatus('Loading from Tatoeba…', 'loading');
+
+      try {
+        const pack = await fetchTatoebaPack(state.direction, 18);
+        state.queue = force ? pack : state.queue.concat(pack);
+        state.queue = scoreAndSortPack(state.queue);
+        state.queueSize = Math.max(state.queueSize, state.queue.length);
+        state.sourceMode = 'tatoeba';
+        updateStatus('Live Tatoeba', 'tatoeba');
+        addCardsToLibrary(pack, state.direction, 'Live Tatoeba');
+        rememberLoadedDeck(pack);
+      } catch (error) {
+        const pack = fallbackPack(state.direction);
+        state.queue = force ? pack : state.queue.concat(pack);
+        state.queue = scoreAndSortPack(state.queue);
+        state.queueSize = Math.max(state.queueSize, state.queue.length);
+        state.sourceMode = 'fallback';
+        updateStatus('Fallback starter pack', 'fallback');
+        setFeedback('Using the built-in starter pack because live loading was unavailable. The practice loop still works.', 'warn');
+      } finally {
+        state.loading = false;
+        updateHud();
+        if (!state.current || force) loadNext(true);
+      }
+    }
+
+    function handleFirstCheck() {
+      const input = els.answerInput.value.trim();
+      if (!input) {
+        setFeedback('Type something first, or reveal the answer.', 'warn');
+        return;
+      }
+
+      const strict = state.grading === 'strict';
+      const result = bestMatch(input, state.current.answers, strict);
+
+      if (result.accepted) {
+        state.attempted += 1;
+        const message = result.via === 'typo' ? 'Accepted with a minor typo.' : 'Correct. Nice work.';
+        markRoundCorrect(true, message);
+        return;
+      }
+
+      const nearNote = result.near >= 0.84 ? 'Very close, but not a current accepted match.' : 'That did not match one of the current accepted answers.';
+      revealAndScoreAsMiss(nearNote);
+    }
+
+    function handlePracticeCheck() {
+      const input = els.answerInput.value.trim();
+      if (!input) {
+        setFeedback('Type one accepted answer to reinforce it.', 'warn');
+        return;
+      }
+
+      const strict = state.grading === 'strict';
+      const result = bestMatch(input, state.current.answers, strict);
+      if (result.accepted) {
+        const message = result.via === 'typo'
+          ? 'Nice. That counts with a minor typo after the reveal.'
+          : 'Nice. You typed an accepted answer after the reveal.';
+        markRoundCorrect(false, message);
+        return;
+      }
+
+      const message = result.near >= 0.84
+        ? 'Close. Keep going until you can produce one accepted answer exactly in the selected grading mode.'
+        : 'Not yet. Keep typing until you can produce one accepted answer.';
+      setFeedback(message, 'warn');
+      renderAnswers(state.current.answers);
+      updateActionLabels();
+    }
+
+    function handleCheck() {
+      if (!state.current) return;
+      if (!state.roundScored) {
+        handleFirstCheck();
+        return;
+      }
+      if (state.roundCountedCorrect || state.roundReinforced) {
+        loadNext();
+        return;
+      }
+      handlePracticeCheck();
+    }
+
+    function handleReveal() {
+      if (!state.current) return;
+      if (!state.roundScored) {
+        revealAndScoreAsMiss('Answer revealed.');
+        return;
+      }
+      renderAnswers(state.current.answers);
+      setFeedback('The accepted answers are shown below. Type one of them to reinforce it, or move on.', 'warn');
+    }
+
+    function handleOverride() {
+      if (!state.current || !state.roundScored || state.roundCountedCorrect) return;
+      const typed = els.answerInput.value.trim();
+      if (!typed) {
+        setFeedback('Type your alternate translation first, then mark it correct.', 'warn');
+        return;
+      }
+
+      state.correct += 1;
+      state.streak = state.roundStartStreak + 1;
+      state.bestStreak = Math.max(state.bestStreak, state.streak);
+      state.roundCountedCorrect = true;
+      state.xp += 8;
+      upgradeRecordedAttemptToCorrect();
+      saveCustomAcceptedAnswer(state.current, typed);
+      setFeedback('Counted as correct and saved as an accepted paraphrase for this card.', 'good');
+      els.overrideBtn.classList.add('hidden');
+      els.nextBtn.classList.remove('hidden');
+      els.answerInput.disabled = true;
+      updateActionLabels();
+      updateHud();
+      saveSettings();
+    }
+
+    function insertAccentChar(char) {
+      const input = els.answerInput;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      const before = input.value.slice(0, start);
+      const after = input.value.slice(end);
+      input.value = `${before}${char}${after}`;
+      input.focus();
+      const nextPosition = start + char.length;
+      input.setSelectionRange(nextPosition, nextPosition);
+      updateCharCount();
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ direction: state.direction, grading: state.grading, goal: state.goal }));
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed.direction === 'spa-eng' || parsed.direction === 'eng-spa') state.direction = parsed.direction;
+        if (parsed.grading === 'lenient' || parsed.grading === 'strict') state.grading = parsed.grading;
+        if (['xp-10', 'xp-25', 'xp-100', 'correct-10', 'correct-25', 'streak-10'].includes(parsed.goal)) state.goal = parsed.goal;
+      } catch {
+        // Ignore malformed saved settings.
+      }
+    }
+
+    function applyStateToControls() {
+      els.directionSelect.value = state.direction;
+      els.gradingSelect.value = state.grading;
+      els.goalSelect.value = state.goal;
+      const cfg = getModeConfig();
+      els.modeMeta.textContent = cfg.modeLabel;
+      els.targetPill.textContent = cfg.targetLabel;
+      updateSavedDeckUI();
+      updatePromptAudioVisibility();
+    }
+
+    function resetSession() {
+      state.queue = [];
+      state.queueSize = 0;
+      state.current = null;
+      state.reviewQueue = [];
+      state.roundsSinceReview = 0;
+      state.roundScored = false;
+      state.roundCountedCorrect = false;
+      state.roundReinforced = false;
+      state.roundRecordedKey = null;
+      state.roundRecordedOutcome = null;
+      state.roundStartStreak = 0;
+      state.attempted = 0;
+      state.correct = 0;
+      state.streak = 0;
+      state.bestStreak = 0;
+      state.xp = 0;
+      state.lastCpm = null;
+      state.goalCompleted = false;
+      renderAnswers([]);
+      setFeedback('Session reset. Loading a fresh pack…', '');
+      updatePromptAudioVisibility();
+      updateHud();
+      refillQueue(true);
+    }
+
+    els.directionSelect.addEventListener('change', () => {
+      state.direction = els.directionSelect.value;
+      state.goalCompleted = false;
+      saveSettings();
+      updateSavedDeckUI();
+      if (!restoreSelectedDeck(true)) resetSession();
+    });
+
+    els.gradingSelect.addEventListener('change', () => {
+      state.grading = els.gradingSelect.value;
+      saveSettings();
+    });
+
+    els.goalSelect.addEventListener('change', () => {
+      state.goal = els.goalSelect.value;
+      state.goalCompleted = false;
+      saveSettings();
+      updateHud();
+    });
+
+    els.loadBtn.addEventListener('click', () => {
+      state.queue = [];
+      state.queueSize = 0;
+      state.current = null;
+      state.reviewQueue = [];
+      state.roundsSinceReview = 0;
+      refillQueue(true);
+    });
+
+    els.restoreBtn.addEventListener('click', () => restoreSelectedDeck(false));
+    els.resetBtn.addEventListener('click', resetSession);
+    els.loadLibraryBtn.addEventListener('click', loadCombinedLibraryDeck);
+    els.mergeDecksBtn.addEventListener('click', mergeSavedDecksIntoLibrary);
+    els.exportCsvBtn.addEventListener('click', exportCurrentDirectionCsv);
+    els.importFileBtn.addEventListener('click', () => els.importFileInput.click());
+    els.importFileInput.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      if (file) importDeckFile(file);
+    });
+    els.checkBtn.addEventListener('click', handleCheck);
+    els.revealBtn.addEventListener('click', handleReveal);
+    els.overrideBtn.addEventListener('click', handleOverride);
+    els.nextBtn.addEventListener('click', loadNext);
+    els.promptAudioBtn.addEventListener('click', () => {
+      if (state.current && getModeConfig().promptLangCode === 'spa') speakSpanish(state.current.prompt);
+    });
+    els.answersList.addEventListener('click', event => {
+      const button = event.target.closest('[data-speak]');
+      if (!button) return;
+      speakSpanish(button.getAttribute('data-speak'));
+    });
+    els.answerInput.addEventListener('input', updateCharCount);
+
+    els.answerInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        handleCheck();
+      }
+    });
+
+    els.accentBar.addEventListener('click', event => {
+      const button = event.target.closest('[data-char]');
+      if (!button) return;
+      insertAccentChar(button.getAttribute('data-char'));
+    });
+
+    loadSettings();
+    loadProgress();
+    loadActivity();
+    loadLibrary();
+    state.savedDecks = loadSavedDecksFromCookie();
+    applyStateToControls();
+    refreshVoices();
+
+    if ('speechSynthesis' in window) {
+      if (typeof window.speechSynthesis.addEventListener === 'function') {
+        window.speechSynthesis.addEventListener('voiceschanged', refreshVoices);
+      } else {
+        window.speechSynthesis.onvoiceschanged = refreshVoices;
+      }
+    }
+
+    updateHud();
+    updateCharCount();
+
+    if (!restoreSelectedDeck(true)) {
+      refillQueue(true);
+    }
+  </script>
+
+</body>
+</html>
