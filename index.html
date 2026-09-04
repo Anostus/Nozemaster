@@ -50,8 +50,26 @@
       backdrop-filter: blur(12px);
     }
     .controls {
-      display: grid; gap: 14px; padding: 18px; grid-template-columns: repeat(12, 1fr);
-      align-items: end; margin-bottom: 16px;
+      display: grid; gap: 14px; padding: 18px; margin-bottom: 16px;
+    }
+    .control-card {
+      border: 1px solid var(--line); border-radius: 20px; overflow: clip;
+      background: rgba(15, 23, 42, 0.42);
+    }
+    .control-card summary {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      min-height: 56px; padding: 0 16px; cursor: pointer; list-style: none;
+      font-weight: 800; color: #f8fafc; user-select: none;
+    }
+    .control-card summary::-webkit-details-marker { display: none; }
+    .control-card summary::after {
+      content: '▾'; color: var(--muted); font-size: 1rem;
+      transition: transform 0.18s ease;
+    }
+    .control-card[open] summary::after { transform: rotate(180deg); }
+    .control-card[open] summary { border-bottom: 1px solid var(--line); }
+    .control-card-body {
+      display: grid; gap: 14px; padding: 16px; grid-template-columns: repeat(12, 1fr); align-items: end;
     }
     .field { display: grid; gap: 8px; }
     .field label { font-size: 0.84rem; color: var(--muted); font-weight: 600; }
@@ -90,6 +108,7 @@
     .btn-warn { background: rgba(251, 191, 36, 0.12); color: #fde68a; border-color: rgba(251, 191, 36, 0.22); }
     .btn-good { background: rgba(34, 197, 94, 0.12); color: #bbf7d0; border-color: rgba(34, 197, 94, 0.22); }
     .hud { display: grid; gap: 12px; padding: 18px; margin-bottom: 16px; }
+    .embedded-hud { margin: 2px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
     .chips { display: flex; flex-wrap: wrap; gap: 10px; }
     .chip {
       display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 999px;
@@ -163,14 +182,24 @@
       display: grid; gap: 10px; border-radius: 20px; border: 1px solid var(--line);
       padding: 16px; background: rgba(15, 23, 42, 0.48);
     }
+    .answers-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .answers h3 { margin: 0; font-size: 0.95rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .answer-mode-btn { min-height: 38px; padding: 0 12px; border-radius: 12px; flex: 0 0 auto; }
+    .answers.floating-answer {
+      position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+      width: min(1044px, calc(100vw - 36px)); max-height: min(42vh, 360px); overflow: auto;
+      z-index: 10000; background: rgba(15, 23, 42, 0.96);
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.72); backdrop-filter: blur(16px);
+      border-color: rgba(96, 165, 250, 0.38);
+    }
     .answers ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
     .answers li { line-height: 1.5; }
     .footer-note { margin-top: 14px; color: var(--muted); font-size: 0.9rem; line-height: 1.6; text-align: center; }
     .hidden { display: none !important; }
     @media (max-width: 960px) {
       .span-3, .span-2 { grid-column: span 12; }
-      .controls { grid-template-columns: 1fr; }
+      .control-card-body { grid-template-columns: 1fr; }
+      .answers.floating-answer { bottom: 10px; width: calc(100vw - 20px); max-height: 48vh; }
     }
   </style>
 </head>
@@ -185,98 +214,109 @@
     </header>
 
     <section class="panel controls">
-      <div class="field span-3">
-        <label for="directionSelect">Direction</label>
-        <select id="directionSelect">
-          <option value="spa-eng">Spanish → English</option>
-          <option value="eng-spa">English → Spanish</option>
-        </select>
-      </div>
-      <div class="field span-3">
-        <label for="gradingSelect">Grading</label>
-        <select id="gradingSelect">
-          <option value="lenient">Lenient (ignore case, accents, punctuation)</option>
-          <option value="strict">Strict (exact punctuation and accents matter)</option>
-        </select>
-      </div>
-      <div class="field span-3">
-        <label for="goalSelect">Session goal</label>
-        <select id="goalSelect">
-          <option value="xp-10">10 XP</option>
-          <option value="xp-25">25 XP</option>
-          <option value="xp-100">100 XP</option>
-          <option value="correct-10">10 correct</option>
-          <option value="correct-25">25 correct</option>
-          <option value="streak-10">10 streak</option>
-        </select>
-      </div>
-      <div class="field span-3">
-        <label for="savedDeckSelect">Saved cookie deck</label>
-        <select id="savedDeckSelect">
-          <option value="">No saved deck yet</option>
-        </select>
-      </div>
-      <div class="field span-2">
-        <label>&nbsp;</label>
-        <button id="loadBtn" class="btn-primary">Load fresh pack</button>
-      </div>
-      <div class="field span-2">
-        <label>&nbsp;</label>
-        <button id="restoreBtn" class="btn-soft">Restore deck</button>
-      </div>
-      <div class="field span-2">
-        <label>&nbsp;</label>
-        <button id="resetBtn" class="btn-soft">Reset session</button>
-      </div>
-      <div class="field span-12">
-        <label>Library tools</label>
-        <div class="tool-row">
-          <button id="loadLibraryBtn" class="btn-soft" type="button">Load combined library</button>
-          <button id="mergeDecksBtn" class="btn-soft" type="button">Merge saved decks</button>
-          <button id="exportCsvBtn" class="btn-soft" type="button">Export CSV</button>
-          <button id="importFileBtn" class="btn-soft" type="button">Import file</button>
+      <details class="control-card" id="practiceSettingsCard">
+        <summary>Direction, grading &amp; session goal</summary>
+        <div class="control-card-body">
+          <div class="field span-3">
+            <label for="directionSelect">Direction</label>
+            <select id="directionSelect">
+              <option value="spa-eng">Spanish → English</option>
+              <option value="eng-spa">English → Spanish</option>
+            </select>
+          </div>
+          <div class="field span-3">
+            <label for="gradingSelect">Grading</label>
+            <select id="gradingSelect">
+              <option value="lenient">Lenient (ignore case, accents, punctuation)</option>
+              <option value="strict">Strict (exact punctuation and accents matter)</option>
+            </select>
+          </div>
+          <div class="field span-3">
+            <label for="goalSelect">Session goal</label>
+            <select id="goalSelect">
+              <option value="xp-10">10 XP</option>
+              <option value="xp-25">25 XP</option>
+              <option value="xp-100">100 XP</option>
+              <option value="correct-10">10 correct</option>
+              <option value="correct-25">25 correct</option>
+              <option value="streak-10">10 streak</option>
+            </select>
+          </div>
         </div>
-        <input id="importFileInput" class="hidden" type="file" accept=".csv,.tsv,.txt,.json,application/json,text/csv,text/tab-separated-values" />
-      </div>
-    </section>
+      </details>
 
-    <section class="panel hud">
-      <div class="chips">
-        <div class="chip"><span class="dot" id="sourceDot"></span><strong id="sourceStatus">Loading...</strong></div>
-        <div class="chip">🔥 Streak <strong id="streakStat">0</strong></div>
-        <div class="chip">✅ Correct <strong id="correctStat">0</strong></div>
-        <div class="chip">🎯 Accuracy <strong id="accuracyStat">0%</strong></div>
-        <div class="chip">⭐ XP <strong id="xpStat">0</strong></div>
-        <div class="chip">🏆 Best <strong id="bestStat">0</strong></div>
-        <div class="chip">📆 Daily <strong id="dailyStat">0</strong></div>
-        <div class="chip">🔊 TTS <strong id="ttsStat">Loading…</strong></div>
-        <div class="chip">🧠 New <strong id="newStat">0</strong></div>
-        <div class="chip">📘 Learning <strong id="learningStat">0</strong></div>
-        <div class="chip">🥇 Mastered <strong id="masteredStat">0</strong></div>
-        <div class="chip">🔁 Review <strong id="reviewStat">0</strong></div>
-        <div class="chip">📚 Library <strong id="libraryStat">0</strong></div>
-      </div>
-      <div class="progress-wrap">
-        <div class="progress-meta">
-          <span id="queueMeta">Preparing your first pack…</span>
-          <span id="modeMeta">Spanish → English</span>
+      <details class="control-card" id="savedDeckCard">
+        <summary>Saved Cookie Deck, stats &amp; activity</summary>
+        <div class="control-card-body">
+          <div class="field span-3">
+            <label for="savedDeckSelect">Saved cookie deck</label>
+            <select id="savedDeckSelect">
+              <option value="">No saved deck yet</option>
+            </select>
+          </div>
+          <div class="field span-2">
+            <label>&nbsp;</label>
+            <button id="loadBtn" class="btn-primary">Load fresh pack</button>
+          </div>
+          <div class="field span-2">
+            <label>&nbsp;</label>
+            <button id="restoreBtn" class="btn-soft">Restore deck</button>
+          </div>
+          <div class="field span-2">
+            <label>&nbsp;</label>
+            <button id="resetBtn" class="btn-soft">Reset session</button>
+          </div>
+          <div class="field span-12">
+            <label>Library tools</label>
+            <div class="tool-row">
+              <button id="loadLibraryBtn" class="btn-soft" type="button">Load combined library</button>
+              <button id="mergeDecksBtn" class="btn-soft" type="button">Merge saved decks</button>
+              <button id="exportCsvBtn" class="btn-soft" type="button">Export CSV</button>
+              <button id="importFileBtn" class="btn-soft" type="button">Import file</button>
+            </div>
+            <input id="importFileInput" class="hidden" type="file" accept=".csv,.tsv,.txt,.json,application/json,text/csv,text/tab-separated-values" />
+          </div>
+
+          <div class="span-12 hud embedded-hud">
+            <div class="chips">
+              <div class="chip"><span class="dot" id="sourceDot"></span><strong id="sourceStatus">Loading...</strong></div>
+              <div class="chip">🔥 Streak <strong id="streakStat">0</strong></div>
+              <div class="chip">✅ Correct <strong id="correctStat">0</strong></div>
+              <div class="chip">🎯 Accuracy <strong id="accuracyStat">0%</strong></div>
+              <div class="chip">⭐ XP <strong id="xpStat">0</strong></div>
+              <div class="chip">🏆 Best <strong id="bestStat">0</strong></div>
+              <div class="chip">📆 Daily <strong id="dailyStat">0</strong></div>
+              <div class="chip">🔊 TTS <strong id="ttsStat">Loading…</strong></div>
+              <div class="chip">🧠 New <strong id="newStat">0</strong></div>
+              <div class="chip">📘 Learning <strong id="learningStat">0</strong></div>
+              <div class="chip">🥇 Mastered <strong id="masteredStat">0</strong></div>
+              <div class="chip">🔁 Review <strong id="reviewStat">0</strong></div>
+              <div class="chip">📚 Library <strong id="libraryStat">0</strong></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-meta">
+                <span id="queueMeta">Preparing your first pack…</span>
+                <span id="modeMeta">Spanish → English</span>
+              </div>
+              <div class="progress"><div id="queueBar"></div></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-meta">
+                <span id="goalMeta">Goal: 10 XP</span>
+                <span id="speedMeta">Speed: —</span>
+              </div>
+              <div class="progress"><div id="goalBar"></div></div>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress-meta">
+                <span>Last 14 days</span>
+                <span id="activityMeta">No activity yet</span>
+              </div>
+              <div id="activityStrip" class="activity-strip"></div>
+            </div>
+          </div>
         </div>
-        <div class="progress"><div id="queueBar"></div></div>
-      </div>
-      <div class="progress-wrap">
-        <div class="progress-meta">
-          <span id="goalMeta">Goal: 10 XP</span>
-          <span id="speedMeta">Speed: —</span>
-        </div>
-        <div class="progress"><div id="goalBar"></div></div>
-      </div>
-      <div class="progress-wrap">
-        <div class="progress-meta">
-          <span>Last 14 days</span>
-          <span id="activityMeta">No activity yet</span>
-        </div>
-        <div id="activityStrip" class="activity-strip"></div>
-      </div>
+      </details>
     </section>
 
     <section class="panel card">
@@ -314,7 +354,10 @@
     <section class="panel feedback-panel">
       <div id="feedbackBox" class="feedback">Loading the first batch…</div>
       <div id="answersBox" class="answers hidden">
-        <h3>Accepted answers from the current set</h3>
+        <div class="answers-head">
+          <h3>Accepted answers from the current set</h3>
+          <button id="answerFloatBtn" class="btn-soft answer-mode-btn" type="button" aria-pressed="false">Float answer</button>
+        </div>
         <ul id="answersList"></ul>
       </div>
     </section>
@@ -434,6 +477,7 @@
       feedbackBox: document.getElementById('feedbackBox'),
       answersBox: document.getElementById('answersBox'),
       answersList: document.getElementById('answersList'),
+      answerFloatBtn: document.getElementById('answerFloatBtn'),
       accentBar: document.getElementById('accentBar')
     };
 
@@ -1325,6 +1369,34 @@
       els.feedbackBox.textContent = message;
     }
 
+    let answerFloating = false;
+    const answersHome = {
+      parent: els.answersBox.parentNode,
+      nextSibling: els.answersBox.nextSibling
+    };
+
+    function setAnswerFloating(enabled) {
+      answerFloating = Boolean(enabled);
+
+      if (answerFloating) {
+        // Move the box outside the backdrop-filter panel so position: fixed
+        // is anchored to the viewport rather than to that panel.
+        if (els.answersBox.parentNode !== document.body) {
+          document.body.appendChild(els.answersBox);
+        }
+      } else if (els.answersBox.parentNode !== answersHome.parent) {
+        // Put the same element back exactly where it started.
+        answersHome.parent.insertBefore(els.answersBox, answersHome.nextSibling);
+      }
+
+      els.answersBox.classList.toggle('floating-answer', answerFloating);
+      els.answerFloatBtn.setAttribute('aria-pressed', String(answerFloating));
+      els.answerFloatBtn.textContent = answerFloating ? 'Dock answer' : 'Float answer';
+      els.answerFloatBtn.title = answerFloating
+        ? 'Return the revealed answers to their normal place in the page'
+        : 'Keep the revealed answers fixed above everything at the bottom of the screen while scrolling';
+    }
+
     function renderAnswers(answers = []) {
       if (!answers.length) {
         els.answersBox.classList.add('hidden');
@@ -1847,6 +1919,7 @@
       if (!button) return;
       speakSpanish(button.getAttribute('data-speak'));
     });
+    els.answerFloatBtn.addEventListener('click', () => setAnswerFloating(!answerFloating));
     els.answerInput.addEventListener('input', updateCharCount);
 
     els.answerInput.addEventListener('keydown', event => {
@@ -1861,6 +1934,11 @@
       if (!button) return;
       insertAccentChar(button.getAttribute('data-char'));
     });
+
+    // These controls intentionally start collapsed on every page load.
+    document.getElementById('practiceSettingsCard').open = false;
+    document.getElementById('savedDeckCard').open = false;
+    setAnswerFloating(false);
 
     loadSettings();
     loadProgress();
